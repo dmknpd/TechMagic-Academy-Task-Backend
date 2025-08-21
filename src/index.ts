@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 
 import { MONGO_URI, PORT } from "./config/config";
 
+import authRoutes from "./routes/auth.routes";
+
 const app = express();
 
 app.use(express.json());
@@ -16,6 +18,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use("/api/auth", authRoutes);
 
 mongoose
   .connect(MONGO_URI)
