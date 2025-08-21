@@ -11,7 +11,7 @@ import {
 import { cookieOptions } from "../config/cookies";
 
 export const register = async (req: Request, res: Response) => {
-  let { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
   try {
     const existing = await User.findOne({ email });
 
@@ -28,18 +28,17 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json({ message: "User registered successfully" });
     return;
   } catch (error: any) {
-    console.error(error.message);
-    res.status(500).json({ message: "Registration error" });
+    res.status(500).json({ message: `Registration error: ${error.message}` });
     return;
   }
 };
 
 export const login = async (req: Request, res: Response) => {
-  let { email, password } = req.body;
+  const { email, password } = req.body;
   try {
-    email = email.toLowerCase();
+    const emailLowerCase = email.toLowerCase();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: emailLowerCase });
 
     if (!user || !(await user.comparePassword(password))) {
       res
@@ -59,8 +58,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
   } catch (error: any) {
-    console.error(error.message);
-    res.status(500).json({ message: "Login error" });
+    res.status(500).json({ message: `Login error: ${error.message}` });
     return;
   }
 };
@@ -139,8 +137,7 @@ export const logout = async (req: Request, res: Response) => {
       return;
     }
   } catch (error: any) {
-    console.error(error.message);
-    res.status(500).json({ message: "Logout error: " });
+    res.status(500).json({ message: `Logout error: ${error.message}` });
     return;
   }
 };

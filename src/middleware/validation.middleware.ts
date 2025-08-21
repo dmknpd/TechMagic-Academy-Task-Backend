@@ -50,3 +50,33 @@ export const loginValidator = [
 
   validateRequest,
 ];
+
+export const clientValidator = [
+  body("firstName")
+    .notEmpty()
+    .withMessage("First Name is required")
+    .isLength({ min: 2 })
+    .withMessage("First Name must be at least 2 characters"),
+
+  body("lastName")
+    .notEmpty()
+    .withMessage("Last Name is required")
+    .isLength({ min: 2 })
+    .withMessage("Last Name must be at least 2 characters"),
+
+  body("middleName")
+    .notEmpty()
+    .withMessage("Middle Name is required")
+    .isLength({ min: 2 })
+    .withMessage("Middle Name must be at least 2 characters"),
+
+  body("email").isEmail().withMessage("Invalid email address"),
+
+  body("phone")
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .matches(/^\+?\d{10,15}$/)
+    .withMessage("Phone number must be 10-15 digits and can start with +"),
+
+  validateRequest,
+];

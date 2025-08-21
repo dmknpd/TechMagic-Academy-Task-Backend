@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { MONGO_URI, PORT } from "./config/config";
 
 import authRoutes from "./routes/auth.routes";
+import clientRoutes from "./routes/client.routes";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/clients", clientRoutes);
 
 mongoose
   .connect(MONGO_URI)
