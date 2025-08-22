@@ -10,6 +10,7 @@ export interface IUser extends Document {
   role: "admin" | "seller";
   refreshTokens: string[];
   comparePassword(comparePassword: string): Promise<boolean>;
+  createdAt: Date;
 }
 
 const UserSchema: Schema<IUser> = new Schema({
@@ -19,6 +20,7 @@ const UserSchema: Schema<IUser> = new Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["admin", "seller"], default: "seller" },
   refreshTokens: [{ type: String }],
+  createdAt: { type: Date, default: Date.now },
 });
 
 UserSchema.pre<IUser>("save", async function (next) {
