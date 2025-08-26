@@ -123,9 +123,15 @@ export const refreshToken = async (
     const newRefreshToken = generateRefreshToken(user._id, user.email);
     const newAccessToken = generateAccessToken(user._id, user.email);
 
-    user.refreshTokens = user.refreshTokens.filter(
-      (token) => token !== refreshTokenFromCookie
-    );
+    user.refreshTokens = user.refreshTokens.filter((token) => {
+      try {
+        verifyRefreshToken(token);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+
     user.refreshTokens.push(newRefreshToken);
 
     await user.save();
