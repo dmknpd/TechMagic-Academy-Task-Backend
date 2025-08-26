@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 
 import Itinerary from "../models/itinerary.models";
 
-export const createItinerary = async (req: Request, res: Response) => {
+import { ApiResponse } from "../types/res";
+
+export const createItinerary = async (req: Request, res: ApiResponse) => {
   const { country, climate, duration, hotel, price } = req.body;
   try {
     const existing = await Itinerary.findOne({
@@ -13,7 +15,8 @@ export const createItinerary = async (req: Request, res: Response) => {
 
     if (existing) {
       res.status(400).json({
-        errors: { message: "Itinerary already exist" },
+        success: false,
+        message: "Itinerary already exist",
       });
       return;
     }
@@ -28,12 +31,15 @@ export const createItinerary = async (req: Request, res: Response) => {
 
     await itinerary.save();
 
-    res.status(201).json({ message: "Itinerary created successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Itinerary created successfully" });
     return;
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error creating itinerary: ${error.message}` });
+    res.status(500).json({
+      success: false,
+      message: `Error creating itinerary: ${error.message}`,
+    });
     return;
   }
 };

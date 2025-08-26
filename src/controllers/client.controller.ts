@@ -1,19 +1,22 @@
-import { Response } from "express";
-
-import Client from "../models/client.model";
+import Client, { IClient } from "../models/client.model";
 
 import { RequestWithUserId } from "../types/req";
+import { ApiResponse } from "../types/res";
 
-export const createClient = async (req: RequestWithUserId, res: Response) => {
-  const { firstName, lastName, middleName, email, phone } = req.body;
+export const createClient = async (
+  req: RequestWithUserId,
+  res: ApiResponse
+) => {
+  const { firstName, lastName, middleName, email, phone, address } = req.body;
   const sellerId = req.userId;
 
   try {
-    const existing = await Client.findOne({ email });
+    const existing = await Client.findOne({ phone });
 
     if (existing) {
       res.status(400).json({
-        errors: { email: ["Email already used"] },
+        success: false,
+        errors: { phone: ["Phone number already used"] },
       });
       return;
     }
@@ -24,17 +27,41 @@ export const createClient = async (req: RequestWithUserId, res: Response) => {
       middleName,
       email,
       phone,
+      address,
       sellerId,
     });
 
     await client.save();
 
-    res.status(201).json({ message: "Client created successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Client created successfully" });
     return;
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error creating client: ${error.message}` });
+    console.error("Error creating client: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error creating client: ${error.message}`,
+    });
+    return;
+  }
+};
+
+export const getAllClients = async (
+  req: RequestWithUserId,
+  res: ApiResponse<IClient[]>
+) => {
+  try {
+    const clients = await Client.find();
+
+    res.status(201).json({ success: true, data: clients });
+    return;
+  } catch (error: any) {
+    console.error("Error getting clients: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error getting clients: ${error.message}`,
+    });
     return;
   }
 };

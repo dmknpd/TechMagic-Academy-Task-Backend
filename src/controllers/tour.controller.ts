@@ -4,21 +4,26 @@ import Tour from "../models/tour.models";
 import Itinerary from "../models/itinerary.models";
 import Client from "../models/client.model";
 
-export const createTour = async (req: Request, res: Response) => {
+import { ApiResponse } from "../types/res";
+
+export const createTour = async (req: Request, res: ApiResponse) => {
   const { itineraryId, clientId, startDate, quantity, discount } = req.body;
 
   try {
     const itinerary = await Itinerary.findById(itineraryId);
 
     if (!itinerary) {
-      return res
-        .status(404)
-        .json({ errors: { message: "Itinerary not found" } });
+      return res.status(404).json({
+        success: false,
+        message: "Itinerary not found",
+      });
     }
 
     const client = await Client.findById(clientId);
     if (!client) {
-      return res.status(404).json({ errors: { message: "Client not found" } });
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
     }
 
     const existing = await Tour.findOne({
@@ -29,7 +34,8 @@ export const createTour = async (req: Request, res: Response) => {
 
     if (existing) {
       res.status(400).json({
-        errors: { message: ["Tour already exist"] },
+        success: false,
+        message: "Tour already exist",
       });
       return;
     }
@@ -44,10 +50,16 @@ export const createTour = async (req: Request, res: Response) => {
 
     await tour.save();
 
-    res.status(201).json({ message: "Tour created successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Tour created successfully",
+    });
     return;
   } catch (error: any) {
-    res.status(500).json({ message: `Error creating tour: ${error.message}` });
+    res.status(500).json({
+      success: false,
+      message: `Error creating tour: ${error.message}`,
+    });
     return;
   }
 };

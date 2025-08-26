@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { authenticateTokenMiddleware } from "../middleware/auth.middleware";
 
-import { createClient } from "../controllers/client.controller";
+import { createClient, getAllClients } from "../controllers/client.controller";
 import { clientValidator } from "../middleware/validation.middleware";
 
 const router = Router();
+
+router.get("/", authenticateTokenMiddleware, getAllClients);
 
 router.post(
   "/create",

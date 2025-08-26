@@ -1,8 +1,10 @@
 import { Response } from "express";
 
-export interface ApiResponse<T = any> extends Response {
+interface ApiResponseData<T = any> {
   success: boolean;
   message?: string;
   data?: T;
   errors?: Record<string, string[]>;
 }
+
+export type ApiResponse<T = any> = Response<ApiResponseData<T>>;
