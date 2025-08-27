@@ -65,3 +65,39 @@ export const getAllClients = async (
     return;
   }
 };
+
+export const getClientByPhone = async (
+  req: RequestWithUserId,
+  res: ApiResponse<IClient>
+) => {
+  const { phone } = req.query;
+  try {
+    if (!phone) {
+      res.status(400).json({
+        success: false,
+        message: "Enter phone number",
+      });
+      return;
+    }
+
+    const client = await Client.findOne({ phone });
+
+    if (!client) {
+      res.status(400).json({
+        success: false,
+        message: "Client does not exist",
+      });
+      return;
+    }
+
+    res.status(201).json({ success: true, data: client });
+    return;
+  } catch (error: any) {
+    console.error("Error getting clients: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error getting clients: ${error.message}`,
+    });
+    return;
+  }
+};

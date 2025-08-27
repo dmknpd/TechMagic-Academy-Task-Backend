@@ -75,8 +75,8 @@ export const clientValidator = [
   body("phone")
     .notEmpty()
     .withMessage("Phone number is required")
-    .matches(/^\+?\d{10,15}$/)
-    .withMessage("Phone number must be 10-15 digits and can start with +"),
+    .matches(/^\d{12}$/)
+    .withMessage("Phone number must be 10-15 digits"),
 
   validateRequest,
 ];
