@@ -35,7 +35,11 @@ export const createClient = async (
 
     res
       .status(201)
-      .json({ success: true, message: "Client created successfully" });
+      .json({
+        success: true,
+        message: "Client created successfully",
+        data: client,
+      });
     return;
   } catch (error: any) {
     console.error("Error creating client: ", error);
