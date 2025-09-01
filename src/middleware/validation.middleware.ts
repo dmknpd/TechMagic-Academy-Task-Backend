@@ -80,3 +80,25 @@ export const clientValidator = [
 
   validateRequest,
 ];
+
+export const itineraryValidator = [
+  body("country").notEmpty().withMessage("Country is required"),
+  body("climate").notEmpty().withMessage("Climate is required"),
+  body("duration")
+    .notEmpty()
+    .withMessage("Duration is required")
+    .isInt({ gt: 0 })
+    .withMessage("Duration must be a number greater than 0"),
+  body("hotel").notEmpty().withMessage("Hotel is required"),
+  body("price")
+    .notEmpty()
+    .withMessage("Price is required")
+    .isFloat({ gt: 0 })
+    .withMessage("Price must be greater than 0"),
+  body("url")
+    .notEmpty()
+    .withMessage("Url is required")
+    .isURL()
+    .withMessage("Url must be valid"),
+  validateRequest,
+];
