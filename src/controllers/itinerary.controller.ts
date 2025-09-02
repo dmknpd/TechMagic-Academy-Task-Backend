@@ -1,10 +1,13 @@
-import { Request, Response } from "express";
+import { Request } from "express";
 
-import Itinerary from "../models/itinerary.models";
+import Itinerary, { IItinerary } from "../models/itinerary.models";
 
 import { ApiResponse } from "../types/res";
 
-export const createItinerary = async (req: Request, res: ApiResponse) => {
+export const createItinerary = async (
+  req: Request,
+  res: ApiResponse<IItinerary>
+) => {
   const { country, climate, hotel, price, url } = req.body;
   try {
     const existing = await Itinerary.findOne({
@@ -40,6 +43,61 @@ export const createItinerary = async (req: Request, res: ApiResponse) => {
     res.status(500).json({
       success: false,
       message: `Error creating itinerary: ${error.message}`,
+    });
+    return;
+  }
+};
+
+export const getAllItineraries = async (
+  req: Request,
+  res: ApiResponse<IItinerary[]>
+) => {
+  try {
+    const itineraries = await Itinerary.find();
+
+    res.status(201).json({ success: true, data: itineraries });
+    return;
+  } catch (error: any) {
+    console.error("Error getting itineraries: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error getting itineraries: ${error.message}`,
+    });
+    return;
+  }
+};
+
+export const getItinerariesByCountry = async (
+  req: Request,
+  res: ApiResponse<IItinerary>
+) => {
+  const { country } = req.query;
+  try {
+    if (!country) {
+      res.status(400).json({
+        success: false,
+        message: "Enter valid country",
+      });
+      return;
+    }
+
+    const itinerary = await Itinerary.findOne({ country });
+
+    if (!itinerary) {
+      res.status(400).json({
+        success: false,
+        message: "Itinerary does not exist",
+      });
+      return;
+    }
+
+    res.status(201).json({ success: true, data: itinerary });
+    return;
+  } catch (error: any) {
+    console.error("Error getting itinerary: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error getting itinerary: ${error.message}`,
     });
     return;
   }

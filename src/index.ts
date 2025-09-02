@@ -23,7 +23,7 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
-app.use("/api/itinerary", itineraryRoutes);
+app.use("/api/itineraries", itineraryRoutes);
 
 mongoose
   .connect(MONGO_URI)

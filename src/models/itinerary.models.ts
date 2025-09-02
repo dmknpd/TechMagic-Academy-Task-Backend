@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-interface IItinerary extends Document {
+export interface IItinerary extends Document {
   country: string;
   climate: string;
   duration: number[];

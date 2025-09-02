@@ -5,7 +5,7 @@ import { ApiResponse } from "../types/res";
 
 export const createClient = async (
   req: RequestWithUserId,
-  res: ApiResponse
+  res: ApiResponse<IClient>
 ) => {
   const { firstName, lastName, middleName, email, phone, address } = req.body;
   const sellerId = req.userId;
@@ -33,13 +33,11 @@ export const createClient = async (
 
     await client.save();
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Client created successfully",
-        data: client,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Client created successfully",
+      data: client,
+    });
     return;
   } catch (error: any) {
     console.error("Error creating client: ", error);
@@ -97,10 +95,10 @@ export const getClientByPhone = async (
     res.status(201).json({ success: true, data: client });
     return;
   } catch (error: any) {
-    console.error("Error getting clients: ", error);
+    console.error("Error getting client: ", error);
     res.status(500).json({
       success: false,
-      message: `Error getting clients: ${error.message}`,
+      message: `Error getting client: ${error.message}`,
     });
     return;
   }
