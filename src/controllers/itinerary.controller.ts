@@ -5,12 +5,11 @@ import Itinerary from "../models/itinerary.models";
 import { ApiResponse } from "../types/res";
 
 export const createItinerary = async (req: Request, res: ApiResponse) => {
-  const { country, climate, duration, hotel, price, url } = req.body;
+  const { country, climate, hotel, price, url } = req.body;
   try {
     const existing = await Itinerary.findOne({
       country,
       hotel,
-      duration,
     });
 
     if (existing) {
@@ -24,7 +23,6 @@ export const createItinerary = async (req: Request, res: ApiResponse) => {
     const itinerary = new Itinerary({
       country,
       climate,
-      duration,
       hotel,
       price,
       url,
@@ -32,13 +30,11 @@ export const createItinerary = async (req: Request, res: ApiResponse) => {
 
     await itinerary.save();
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Itinerary created successfully",
-        data: itinerary,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Itinerary created successfully",
+      data: itinerary,
+    });
     return;
   } catch (error: any) {
     res.status(500).json({

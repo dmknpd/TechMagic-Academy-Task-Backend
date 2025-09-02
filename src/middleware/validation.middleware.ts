@@ -84,11 +84,6 @@ export const clientValidator = [
 export const itineraryValidator = [
   body("country").notEmpty().withMessage("Country is required"),
   body("climate").notEmpty().withMessage("Climate is required"),
-  body("duration")
-    .notEmpty()
-    .withMessage("Duration is required")
-    .isInt({ gt: 0 })
-    .withMessage("Duration must be a number greater than 0"),
   body("hotel").notEmpty().withMessage("Hotel is required"),
   body("price")
     .notEmpty()
