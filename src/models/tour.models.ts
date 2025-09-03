@@ -4,6 +4,7 @@ interface ITour extends Document {
   itineraryId: Schema.Types.ObjectId;
   clientId: Schema.Types.ObjectId;
   startDate: Date;
+  duration: number;
   quantity: number;
   discount: number;
   createdAt: Date;
@@ -21,8 +22,9 @@ const TourSchema = new Schema<ITour>({
     required: true,
   },
   startDate: { type: Date, required: true },
+  duration: { type: Number, required: true },
   quantity: { type: Number, required: true },
-  discount: { type: Number, required: true },
+  discount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
