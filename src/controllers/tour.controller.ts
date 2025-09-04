@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 
-import Tour from "../models/tour.models";
+import Tour, { ITour } from "../models/tour.models";
 import Itinerary from "../models/itinerary.models";
 import Client from "../models/client.model";
 
 import { ApiResponse } from "../types/res";
 
-export const createTour = async (req: Request, res: ApiResponse) => {
-  const { itineraryId, clientId, startDate, quantity, discount } = req.body;
+export const createTour = async (req: Request, res: ApiResponse<ITour>) => {
+  const { itineraryId, clientId, startDate, quantity, duration, discount } =
+    req.body;
 
   try {
     const itinerary = await Itinerary.findById(itineraryId);
@@ -29,7 +30,7 @@ export const createTour = async (req: Request, res: ApiResponse) => {
     const existing = await Tour.findOne({
       itineraryId,
       clientId,
-      startDate: new Date(startDate),
+      startDate,
     });
 
     if (existing) {
@@ -43,7 +44,8 @@ export const createTour = async (req: Request, res: ApiResponse) => {
     const tour = new Tour({
       itineraryId,
       clientId,
-      startDate: new Date(startDate),
+      startDate,
+      duration,
       quantity,
       discount,
     });
@@ -53,6 +55,7 @@ export const createTour = async (req: Request, res: ApiResponse) => {
     res.status(201).json({
       success: true,
       message: "Tour created successfully",
+      data: tour,
     });
     return;
   } catch (error: any) {

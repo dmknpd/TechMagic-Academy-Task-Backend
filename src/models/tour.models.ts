@@ -1,6 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 
-interface ITour extends Document {
+export interface ITour extends Document {
   itineraryId: Schema.Types.ObjectId;
   clientId: Schema.Types.ObjectId;
   startDate: Date;

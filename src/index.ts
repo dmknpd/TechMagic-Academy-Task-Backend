@@ -8,6 +8,7 @@ import { MONGO_URI, PORT } from "./config/config";
 import authRoutes from "./routes/auth.routes";
 import clientRoutes from "./routes/client.routes";
 import itineraryRoutes from "./routes/itinerary.routes";
+import tourRoutes from "./routes/tour.routes";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/itineraries", itineraryRoutes);
+app.use("/api/tours", tourRoutes);
 
 mongoose
   .connect(MONGO_URI)
