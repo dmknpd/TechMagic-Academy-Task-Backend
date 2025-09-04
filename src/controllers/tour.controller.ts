@@ -66,3 +66,19 @@ export const createTour = async (req: Request, res: ApiResponse<ITour>) => {
     return;
   }
 };
+
+export const getAllTours = async (req: Request, res: ApiResponse<ITour[]>) => {
+  try {
+    const tours = await Tour.find();
+
+    res.status(201).json({ success: true, data: tours });
+    return;
+  } catch (error: any) {
+    console.error("Error getting tours: ", error);
+    res.status(500).json({
+      success: false,
+      message: `Error getting tours: ${error.message}`,
+    });
+    return;
+  }
+};
