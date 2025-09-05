@@ -1,4 +1,5 @@
 import Client, { IClient } from "../models/client.model";
+import Tour from "../models/tour.models";
 
 import { RequestWithUserId } from "../types/req";
 import { ApiResponse } from "../types/res";
@@ -68,21 +69,29 @@ export const getAllClients = async (
   }
 };
 
-export const getClientByPhone = async (
+export const getClient = async (
   req: RequestWithUserId,
   res: ApiResponse<IClient>
 ) => {
-  const { phone } = req.query;
+  const { phone, _id } = req.query;
   try {
-    if (!phone) {
+    if (!phone && !_id) {
       res.status(400).json({
         success: false,
-        message: "Enter phone number",
+        message: "Enter phone number or client ID",
       });
       return;
     }
 
-    const client = await Client.findOne({ phone });
+    const filter: Record<string, any> = {};
+    if (phone) {
+      filter.phone = phone;
+    }
+    if (_id) {
+      filter._id = _id;
+    }
+
+    const client = await Client.findOne(filter);
 
     if (!client) {
       res.status(400).json({
@@ -101,5 +110,52 @@ export const getClientByPhone = async (
       message: `Error getting client: ${error.message}`,
     });
     return;
+  }
+};
+
+export const getClientFullInfo = async (
+  req: RequestWithUserId,
+  res: ApiResponse
+) => {
+  const { id } = req.params;
+  try {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter client ID",
+      });
+    }
+
+    const client = await Client.findOne({ _id: id })
+      .populate({
+        path: "sellerId",
+        select: "firstName lastName",
+      })
+      .lean();
+
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        message: "Client does not exist",
+      });
+    }
+
+    const tours = await Tour.find({ clientId: client._id })
+      .populate({ path: "itineraryId", select: "country hotel price" })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...client,
+        tours,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error getting client: ", error);
+    return res.status(500).json({
+      success: false,
+      message: `Error getting client: ${error.message}`,
+    });
   }
 };
