@@ -60,8 +60,8 @@ export const login = async (
       return;
     }
 
-    const refreshToken = generateRefreshToken(user._id, user.email);
-    const accessToken = generateAccessToken(user._id, user.email);
+    const refreshToken = generateRefreshToken(user._id, user.email, user.role);
+    const accessToken = generateAccessToken(user._id, user.email, user.role);
 
     user.refreshTokens.push(refreshToken);
     await user.save();
@@ -120,8 +120,12 @@ export const refreshToken = async (
       return;
     }
 
-    const newRefreshToken = generateRefreshToken(user._id, user.email);
-    const newAccessToken = generateAccessToken(user._id, user.email);
+    const newRefreshToken = generateRefreshToken(
+      user._id,
+      user.email,
+      user.role
+    );
+    const newAccessToken = generateAccessToken(user._id, user.email, user.role);
 
     user.refreshTokens = user.refreshTokens.filter((token) => {
       try {
