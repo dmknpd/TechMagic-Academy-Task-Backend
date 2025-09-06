@@ -4,13 +4,13 @@ import { authenticateTokenMiddleware } from "../middleware/auth.middleware";
 import {
   createItinerary,
   getAllItineraries,
-  getItinerariesByCountry,
+  getItinerariesById,
 } from "../controllers/itinerary.controller";
 import { itineraryValidator } from "../middleware/validation.middleware";
 
 const router = Router();
 
-router.get("/search", authenticateTokenMiddleware, getItinerariesByCountry);
+router.get("/:id", authenticateTokenMiddleware, getItinerariesById);
 
 router.get("/", authenticateTokenMiddleware, getAllItineraries);
 

@@ -15,11 +15,10 @@ export const createClient = async (
     const existing = await Client.findOne({ phone });
 
     if (existing) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         errors: { phone: ["Phone number already used"] },
       });
-      return;
     }
 
     const client = new Client({
@@ -34,19 +33,17 @@ export const createClient = async (
 
     await client.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Client created successfully",
       data: client,
     });
-    return;
   } catch (error: any) {
     console.error("Error creating client: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error creating client: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -57,15 +54,13 @@ export const getAllClients = async (
   try {
     const clients = await Client.find();
 
-    res.status(201).json({ success: true, data: clients });
-    return;
+    return res.status(201).json({ success: true, data: clients });
   } catch (error: any) {
     console.error("Error getting clients: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error getting clients: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -76,11 +71,10 @@ export const getClient = async (
   const { phone, _id } = req.query;
   try {
     if (!phone && !_id) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Enter phone number or client ID",
       });
-      return;
     }
 
     const filter: Record<string, any> = {};
@@ -94,22 +88,19 @@ export const getClient = async (
     const client = await Client.findOne(filter);
 
     if (!client) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Client does not exist",
       });
-      return;
     }
 
-    res.status(201).json({ success: true, data: client });
-    return;
+    return res.status(201).json({ success: true, data: client });
   } catch (error: any) {
     console.error("Error getting client: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error getting client: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -156,6 +147,97 @@ export const getClientFullInfo = async (
     return res.status(500).json({
       success: false,
       message: `Error getting client: ${error.message}`,
+    });
+  }
+};
+
+export const updateClient = async (
+  req: RequestWithUserId,
+  res: ApiResponse<IClient>
+) => {
+  const { id } = req.params;
+  const { firstName, lastName, middleName, email, phone, address } = req.body;
+
+  try {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter client ID",
+      });
+    }
+
+    if (phone) {
+      const existing = await Client.findOne({ phone, _id: { $ne: id } });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          errors: { phone: ["Phone number already used"] },
+        });
+      }
+    }
+
+    const updatedClient = await Client.findByIdAndUpdate(
+      id,
+      { firstName, lastName, middleName, email, phone, address },
+      { new: true }
+    );
+
+    if (!updatedClient) {
+      return res.status(404).json({
+        success: false,
+        message: "Client not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Client updated successfully",
+      data: updatedClient,
+    });
+  } catch (error: any) {
+    console.error("Error updating client: ", error);
+    return res.status(500).json({
+      success: false,
+      message: `Error updating client: ${error.message}`,
+    });
+  }
+};
+
+export const deleteClient = async (
+  req: RequestWithUserId,
+  res: ApiResponse<{ id: string }>
+) => {
+  const { id } = req.params;
+
+  try {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter client ID",
+      });
+    }
+
+    const deletedClient = await Client.findByIdAndDelete(id);
+
+    if (!deletedClient) {
+      return res.status(404).json({
+        success: false,
+        message: "Client not found",
+      });
+    }
+
+    await Tour.deleteMany({ clientId: id });
+
+    return res.status(200).json({
+      success: true,
+      message: "Client deleted successfully",
+      data: { id },
+    });
+  } catch (error: any) {
+    console.error("Error deleting client: ", error);
+    return res.status(500).json({
+      success: false,
+      message: `Error deleting client: ${error.message}`,
     });
   }
 };

@@ -34,11 +34,10 @@ export const createTour = async (req: Request, res: ApiResponse<ITour>) => {
     });
 
     if (existing) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Tour already exist",
       });
-      return;
     }
 
     const tour = new Tour({
@@ -52,18 +51,16 @@ export const createTour = async (req: Request, res: ApiResponse<ITour>) => {
 
     await tour.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Tour created successfully",
       data: tour,
     });
-    return;
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error creating tour: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -71,14 +68,12 @@ export const getAllTours = async (req: Request, res: ApiResponse<ITour[]>) => {
   try {
     const tours = await Tour.find();
 
-    res.status(201).json({ success: true, data: tours });
-    return;
+    return res.status(201).json({ success: true, data: tours });
   } catch (error: any) {
     console.error("Error getting tours: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error getting tours: ${error.message}`,
     });
-    return;
   }
 };

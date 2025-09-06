@@ -16,11 +16,10 @@ export const createItinerary = async (
     });
 
     if (existing) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Itinerary already exist",
       });
-      return;
     }
 
     const itinerary = new Itinerary({
@@ -33,18 +32,16 @@ export const createItinerary = async (
 
     await itinerary.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Itinerary created successfully",
       data: itinerary,
     });
-    return;
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error creating itinerary: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -55,50 +52,44 @@ export const getAllItineraries = async (
   try {
     const itineraries = await Itinerary.find();
 
-    res.status(201).json({ success: true, data: itineraries });
-    return;
+    return res.status(201).json({ success: true, data: itineraries });
   } catch (error: any) {
     console.error("Error getting itineraries: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error getting itineraries: ${error.message}`,
     });
-    return;
   }
 };
 
-export const getItinerariesByCountry = async (
+export const getItinerariesById = async (
   req: Request,
   res: ApiResponse<IItinerary>
 ) => {
-  const { country } = req.query;
+  const { id } = req.params;
   try {
-    if (!country) {
-      res.status(400).json({
+    if (!id) {
+      return res.status(400).json({
         success: false,
-        message: "Enter valid country",
+        message: "Enter itinerary ID",
       });
-      return;
     }
 
-    const itinerary = await Itinerary.findOne({ country });
+    const itinerary = await Itinerary.findOne({ _id: id });
 
     if (!itinerary) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Itinerary does not exist",
       });
-      return;
     }
 
-    res.status(201).json({ success: true, data: itinerary });
-    return;
+    return res.status(201).json({ success: true, data: itinerary });
   } catch (error: any) {
     console.error("Error getting itinerary: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Error getting itinerary: ${error.message}`,
     });
-    return;
   }
 };

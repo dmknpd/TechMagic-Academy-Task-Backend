@@ -17,28 +17,25 @@ export const register = async (req: Request, res: ApiResponse) => {
     const existing = await User.findOne({ email });
 
     if (existing) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         errors: { email: ["Email already used"] },
       });
-      return;
     }
 
     const user = new User({ firstName, lastName, email, password });
     await user.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User registered successfully",
     });
-    return;
   } catch (error: any) {
     console.error("Registration error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Registration error: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -53,11 +50,10 @@ export const login = async (
     const user = await User.findOne({ email: emailLowerCase });
 
     if (!user || !(await user.comparePassword(password))) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         errors: { email: ["User doesn't exist or wrong password"] },
       });
-      return;
     }
 
     const refreshToken = generateRefreshToken(user._id, user.email, user.role);
@@ -68,19 +64,17 @@ export const login = async (
 
     res.cookie("jwt", refreshToken, cookieOptions);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       data: { accessToken },
     });
-    return;
   } catch (error: any) {
     console.error("Login error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Login error: ${error.message}`,
     });
-    return;
   }
 };
 
@@ -91,11 +85,10 @@ export const refreshToken = async (
   const cookies = req.cookies;
 
   if (!cookies?.jwt) {
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: "Please login to continue",
     });
-    return;
   }
 
   const refreshTokenFromCookie = cookies.jwt;
@@ -105,19 +98,17 @@ export const refreshToken = async (
 
     const user = await User.findById(decoded.userId);
     if (!user) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: "User not found (unauthorized)",
       });
-      return;
     }
 
     if (!user.refreshTokens.includes(refreshTokenFromCookie)) {
-      res.status(403).json({
+      return res.status(403).json({
         success: false,
         message: "Access denied",
       });
-      return;
     }
 
     const newRefreshToken = generateRefreshToken(
@@ -142,18 +133,16 @@ export const refreshToken = async (
 
     res.cookie("jwt", newRefreshToken, cookieOptions);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: { accessToken: newAccessToken },
     });
-    return;
   } catch (error: any) {
     console.error("Refresh error:", error);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: "Please login to continue",
     });
-    return;
   }
 };
 
@@ -161,11 +150,10 @@ export const logout = async (req: Request, res: ApiResponse) => {
   const cookies = req.cookies;
 
   if (!cookies?.jwt) {
-    res.status(204).json({
+    return res.status(204).json({
       success: true,
       message: "No active session",
     });
-    return;
   }
 
   const refreshTokenFromCookie = cookies.jwt;
@@ -176,11 +164,10 @@ export const logout = async (req: Request, res: ApiResponse) => {
     const user = await User.findById(decoded.userId);
     if (!user) {
       res.clearCookie("jwt", cookieOptions);
-      res.status(204).json({
+      return res.status(204).json({
         success: true,
         message: "No active session",
       });
-      return;
     }
 
     user.refreshTokens = user.refreshTokens.filter(
@@ -190,17 +177,15 @@ export const logout = async (req: Request, res: ApiResponse) => {
     await user.save();
 
     res.clearCookie("jwt", cookieOptions);
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Logged out successfully",
     });
-    return;
   } catch (error: any) {
     console.error("Logout error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Logout error: ${error.message}`,
     });
-    return;
   }
 };
