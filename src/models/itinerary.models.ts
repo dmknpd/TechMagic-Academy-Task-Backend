@@ -12,7 +12,7 @@ export interface IItinerary extends Document {
 
 const ItinerarySchema = new Schema<IItinerary>({
   country: { type: String, required: true },
-  climate: { type: String, required: true },
+  climate: { type: String, required: true, lowercase: true },
   hotel: { type: String, required: true },
   duration: { type: [Number], default: [1, 2, 4] },
   price: { type: Number, required: true },

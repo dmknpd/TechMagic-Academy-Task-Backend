@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.routes";
 import clientRoutes from "./routes/client.routes";
 import itineraryRoutes from "./routes/itinerary.routes";
 import tourRoutes from "./routes/tour.routes";
+import discountsRoutes from "./routes/discount.routes";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/itineraries", itineraryRoutes);
 app.use("/api/tours", tourRoutes);
+app.use("/api/discounts", discountsRoutes);
 
 mongoose
   .connect(MONGO_URI)
