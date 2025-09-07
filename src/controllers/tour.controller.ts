@@ -77,3 +77,40 @@ export const getAllTours = async (req: Request, res: ApiResponse<ITour[]>) => {
     });
   }
 };
+
+export const deleteTour = async (
+  req: Request,
+  res: ApiResponse<{ id: string }>
+) => {
+  const { id } = req.params;
+
+  try {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter tour ID",
+      });
+    }
+
+    const deletedClient = await Tour.findByIdAndDelete(id);
+
+    if (!deletedClient) {
+      return res.status(404).json({
+        success: false,
+        message: "Tour not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Tour deleted successfully",
+      data: { id },
+    });
+  } catch (error: any) {
+    console.error("Error deleting tour: ", error);
+    return res.status(500).json({
+      success: false,
+      message: `Error deleting tour: ${error.message}`,
+    });
+  }
+};
