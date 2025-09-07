@@ -48,7 +48,6 @@ export const getAllDiscounts = async (
   try {
     const discounts = await Discount.find();
 
-    console.log(discounts);
     return res.status(201).json({ success: true, data: discounts });
   } catch (error: any) {
     console.error("Error getting discounts: ", error);

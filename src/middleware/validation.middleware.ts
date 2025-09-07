@@ -97,3 +97,14 @@ export const itineraryValidator = [
     .withMessage("Url must be valid"),
   validateRequest,
 ];
+
+export const discountValidator = [
+  body("name").notEmpty().withMessage("Name is required"),
+  body("value")
+    .notEmpty()
+    .withMessage("Value is required")
+    .isFloat({ gt: 0 })
+    .withMessage("Value must be greater than 0"),
+  body("description").notEmpty().withMessage("Description is required"),
+  validateRequest,
+];

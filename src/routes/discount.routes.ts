@@ -5,8 +5,9 @@ import {
   deleteDiscount,
   getAllDiscounts,
   updateDiscount,
-} from "../controllers/discount.contoller";
+} from "../controllers/discount.controller";
 import { adminRoleMiddleware } from "../middleware/admin.middleware";
+import { discountValidator } from "../middleware/validation.middleware";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.post(
   "/create",
   authenticateTokenMiddleware,
   adminRoleMiddleware,
+  discountValidator,
   createDiscount
 );
 
@@ -23,6 +25,7 @@ router.put(
   "/:id/edit",
   authenticateTokenMiddleware,
   adminRoleMiddleware,
+  discountValidator,
   updateDiscount
 );
 

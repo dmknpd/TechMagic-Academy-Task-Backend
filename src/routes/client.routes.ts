@@ -30,6 +30,7 @@ router.put(
   "/:id/edit",
   authenticateTokenMiddleware,
   adminRoleMiddleware,
+  clientValidator,
   updateClient
 );
 router.delete(

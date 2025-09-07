@@ -28,6 +28,7 @@ router.put(
   "/:id/edit",
   authenticateTokenMiddleware,
   adminRoleMiddleware,
+  itineraryValidator,
   updateItinerary
 );
 router.delete(
