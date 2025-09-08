@@ -14,10 +14,10 @@ import { adminRoleMiddleware } from "../middleware/admin.middleware";
 
 const router = Router();
 
+router.get("/", authenticateTokenMiddleware, getAllClients);
+
 router.get("/search", authenticateTokenMiddleware, getClient);
 router.get("/:id/details", authenticateTokenMiddleware, getClientFullInfo);
-
-router.get("/", authenticateTokenMiddleware, getAllClients);
 
 router.post(
   "/create",
