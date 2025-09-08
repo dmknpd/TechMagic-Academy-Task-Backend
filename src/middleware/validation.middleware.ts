@@ -1,7 +1,12 @@
 import { body, validationResult } from "express-validator";
-import { Request, Response, NextFunction } from "express";
+import { Request, NextFunction } from "express";
+import { ApiResponse } from "../types/res";
 
-const validateRequest = (req: Request, res: Response, next: NextFunction) => {
+const validateRequest = (
+  req: Request,
+  res: ApiResponse,
+  next: NextFunction
+) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const formatted: Record<string, string[]> = {};
@@ -14,7 +19,10 @@ const validateRequest = (req: Request, res: Response, next: NextFunction) => {
         formatted[err.path].push(err.msg);
       }
     });
-    return res.status(400).json({ errors: formatted });
+    return res.status(400).json({
+      success: false,
+      errors: formatted,
+    });
   }
   next();
 };
