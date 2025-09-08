@@ -1,0 +1,1053 @@
+openapi: 3.0.0
+info:
+  title: Traveler Tour API
+  description: API documentation for travel agency
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Local server
+
+tags:
+  - name: Auth
+    description: Operations about user authentication
+  - name: Clients
+    description: Operations for managing clients
+  - name: Itineraries
+    description: Operations for managing tour itineraries
+  - name: Tours
+    description: Operations for managing client tours
+  - name: Discounts
+    description: Operations for managing discounts
+
+paths:
+  # --- Auth Endpoints ---
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description: Creates a new user account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            examples:
+              success:
+                summary: Example registration request
+                value:
+                  firstName: "John"
+                  lastName: "Doe"
+                  email: "john.doe@example.com"
+                  password: "password123"
+                  confirmPassword: "password123"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessageResponse"
+              example:
+                success: true
+                message: "User registered successfully"
+        "400":
+          description: Bad Request - Validation error or email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                emailInUse:
+                  summary: Email already used
+                  value:
+                    success: false
+                    errors:
+                      email: ["Email already used"]
+                validationError:
+                  summary: Validation error
+                  value:
+                    success: false
+                    errors:
+                      password: ["Password must be at least 4 characters"]
+                      confirmPassword: ["Passwords do not match"]
+        "500":
+          description: Internal Server Error
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in a user
+      description: Authenticates a user and returns an access token. Sets an httpOnly cookie with the refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              success:
+                summary: Example login request
+                value:
+                  email: "john.doe@example.com"
+                  password: "password123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccessResponse"
+              example:
+                success: true
+                message: "Login successful"
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "400":
+          description: Bad Request - User doesn't exist or wrong password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                errors:
+                  email: ["User doesn't exist or wrong password"]
+        "500":
+          description: Internal Server Error
+  /auth/refresh:
+    get:
+      tags:
+        - Auth
+      summary: Refresh access token
+      description: Generates a new access token using the refresh token from the httpOnly cookie (`jwt`).
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Access token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshSuccessResponse"
+              example:
+                success: true
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.NEW_TOKEN"
+        "401":
+          description: Unauthorized - No refresh token cookie found or token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Please login to continue"
+        "403":
+          description: Forbidden - Refresh token is not valid for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Access denied"
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      summary: Log out a user
+      description: Clears the refresh token from the database and removes the httpOnly cookie (`jwt`).
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessageResponse"
+              example:
+                success: true
+                message: "Logged out successfully"
+        "204":
+          description: No Content - No active session to log out from
+        "500":
+          description: Internal Server Error
+
+  # --- Client Endpoints ---
+  /clients:
+    get:
+      tags:
+        - Clients
+      summary: Get all clients
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Client"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /clients/create:
+    post:
+      tags:
+        - Clients
+      summary: Create a new client
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientRequestBody"
+      responses:
+        "201":
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Client"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /clients/search:
+    get:
+      tags:
+        - Clients
+      summary: Find a client by ID or phone
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: _id
+          schema:
+            type: string
+          description: The ID of the client.
+        - in: query
+          name: phone
+          schema:
+            type: string
+          description: The phone number of the client.
+      responses:
+        "200":
+          description: Client found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad Request (e.g., no search parameter provided)
+        "404":
+          description: Client not found
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /clients/{id}/details:
+    get:
+      tags:
+        - Clients
+      summary: Get client's full information with tours
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+      responses:
+        "200":
+          description: Full client information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientFullInfo"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /clients/{id}/edit:
+    put:
+      tags:
+        - Clients
+      summary: Update a client (Admin only)
+      description: Update client details. Requires administrator privileges.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientRequestBody"
+      responses:
+        "200":
+          description: Client updated successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /clients/{id}/delete:
+    delete:
+      tags:
+        - Clients
+      summary: Delete a client (Admin only)
+      description: Delete a client and all associated tours. Requires administrator privileges.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+      responses:
+        "200":
+          description: Client deleted successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # --- Itinerary Endpoints ---
+  /itineraries:
+    get:
+      tags:
+        - Itineraries
+      summary: Get all itineraries
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of itineraries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Itinerary"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /itineraries/create:
+    post:
+      tags:
+        - Itineraries
+      summary: Create a new itinerary
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryRequestBody"
+      responses:
+        "201":
+          description: Itinerary created successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /itineraries/{id}:
+    get:
+      tags:
+        - Itineraries
+      summary: Get itinerary by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ItineraryId"
+      responses:
+        "200":
+          description: Itinerary found
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /itineraries/{id}/edit:
+    put:
+      tags:
+        - Itineraries
+      summary: Update an itinerary (Admin only)
+      description: Update itinerary details. Requires administrator privileges.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ItineraryId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryRequestBody"
+      responses:
+        "200":
+          description: Itinerary updated successfully
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /itineraries/{id}/delete:
+    delete:
+      tags:
+        - Itineraries
+      summary: Delete an itinerary (Admin only)
+      description: Delete an itinerary. Fails if the itinerary is linked to any tours. Requires administrator privileges.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ItineraryId"
+      responses:
+        "200":
+          description: Itinerary deleted successfully
+        "400":
+          description: Bad Request (e.g., itinerary is in use)
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # --- Tour Endpoints ---
+  /tours:
+    get:
+      tags:
+        - Tours
+      summary: Get all tours
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of all tours
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tour"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /tours/create:
+    post:
+      tags:
+        - Tours
+      summary: Create a new tour
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TourRequestBody"
+      responses:
+        "201":
+          description: Tour created successfully
+        "400":
+          description: Bad Request (e.g., tour already exists)
+        "404":
+          description: Not Found (e.g., client or itinerary not found)
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /tours/{id}/delete:
+    delete:
+      tags:
+        - Tours
+      summary: Delete a tour
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TourId"
+      responses:
+        "200":
+          description: Tour deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # --- Discount Endpoints ---
+  /discounts:
+    get:
+      tags:
+        - Discounts
+      summary: Get all discounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of all discounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Discount"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /discounts/create:
+    post:
+      tags:
+        - Discounts
+      summary: Create a new discount (Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountRequestBody"
+      responses:
+        "201":
+          description: Discount created successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /discounts/{id}/edit:
+    put:
+      tags:
+        - Discounts
+      summary: Update a discount (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/DiscountId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountRequestBody"
+      responses:
+        "200":
+          description: Discount updated successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /discounts/{id}/delete:
+    delete:
+      tags:
+        - Discounts
+      summary: Delete a discount (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/DiscountId"
+      responses:
+        "200":
+          description: Discount deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    # --- Auth Schemas ---
+    RegisterRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+        - confirmPassword
+      properties:
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 4
+          example: "password123"
+        confirmPassword:
+          type: string
+          format: password
+          minLength: 4
+          example: "password123"
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          format: password
+          example: "password123"
+    SuccessMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+    LoginSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2M2MzY..."
+    RefreshSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2M2MzY..."
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: A general error message (used for server errors or simple auth failures).
+        errors:
+          type: object
+          description: An object containing field-specific validation errors.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email: ["Email already used", "Invalid email address"]
+            password: ["Password must be at least 4 characters"]
+
+    # --- Client Schemas ---
+    Client:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60c72b2f5f1b2c001f8e4d2a"
+        firstName:
+          type: string
+          example: "Peter"
+        lastName:
+          type: string
+          example: "Jones"
+        middleName:
+          type: string
+          example: "Lee"
+        address:
+          type: object
+          properties:
+            country:
+              type: string
+              example: "USA"
+            city:
+              type: string
+              example: "New York"
+        email:
+          type: string
+          format: email
+          example: "peter.jones@example.com"
+        phone:
+          type: string
+          example: "123456789012"
+        sellerId:
+          type: string
+          description: "ID of the user who registered the client."
+          example: "60c72b2f5f1b2c001f8e4d22"
+        createdAt:
+          type: string
+          format: date-time
+    ClientRequestBody:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - middleName
+        - email
+        - phone
+        - address
+      properties:
+        firstName:
+          type: string
+          example: "Peter"
+        lastName:
+          type: string
+          example: "Jones"
+        middleName:
+          type: string
+          example: "Lee"
+        email:
+          type: string
+          format: email
+          example: "peter.jones@example.com"
+        phone:
+          type: string
+          example: "123456789012"
+        address:
+          type: object
+          required:
+            - country
+            - city
+          properties:
+            country:
+              type: string
+              example: "USA"
+            city:
+              type: string
+              example: "New York"
+    ClientFullInfo:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          allOf:
+            - $ref: "#/components/schemas/Client"
+            - type: object
+              properties:
+                sellerId:
+                  type: object
+                  description: "Populated seller information"
+                  properties:
+                    _id:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                tours:
+                  type: array
+                  items:
+                    type: object # Simplified Tour object
+                    properties:
+                      _id:
+                        type: string
+                      itineraryId:
+                        type: object
+                        description: "Populated itinerary information"
+                        properties:
+                          _id:
+                            type: string
+                          country:
+                            type: string
+                          hotel:
+                            type: string
+                          price:
+                            type: number
+
+    # --- Itinerary Schemas ---
+    Itinerary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60d21b4667d0d8992e610c85"
+        country:
+          type: string
+          example: "Egypt"
+        climate:
+          type: string
+          example: "desert"
+        hotel:
+          type: string
+          example: "Pyramids View Inn"
+        duration:
+          type: array
+          items:
+            type: integer
+          example: [1, 2, 4]
+        price:
+          type: number
+          format: float
+          example: 1500.50
+        url:
+          type: string
+          format: url
+          example: "http://example.com/tour/egypt"
+        createdAt:
+          type: string
+          format: date-time
+    ItineraryRequestBody:
+      type: object
+      required:
+        - country
+        - climate
+        - hotel
+        - price
+        - url
+      properties:
+        country:
+          type: string
+          example: "Turkey"
+        climate:
+          type: string
+          example: "mediterranean"
+        hotel:
+          type: string
+          example: "Antalya Resort"
+        price:
+          type: number
+          format: float
+          example: 1200
+        url:
+          type: string
+          format: url
+          example: "http://example.com/tour/turkey"
+
+    # --- Tour Schemas ---
+    Tour:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "61e1a3b4c5d6e7f8g9h0i1j2"
+        itineraryId:
+          type: string
+          description: "ID of the linked itinerary"
+          example: "60d21b4667d0d8992e610c85"
+        clientId:
+          type: string
+          description: "ID of the linked client"
+          example: "60c72b2f5f1b2c001f8e4d2a"
+        startDate:
+          type: string
+          format: date
+          example: "2025-10-15"
+        duration:
+          type: integer
+          example: 7
+        quantity:
+          type: integer
+          example: 2
+        discount:
+          type: number
+          format: float
+          example: 10.5
+        createdAt:
+          type: string
+          format: date-time
+    TourRequestBody:
+      type: object
+      required:
+        - itineraryId
+        - clientId
+        - startDate
+        - duration
+        - quantity
+      properties:
+        itineraryId:
+          type: string
+          example: "60d21b4667d0d8992e610c85"
+        clientId:
+          type: string
+          example: "60c72b2f5f1b2c001f8e4d2a"
+        startDate:
+          type: string
+          format: date
+          example: "2025-10-15"
+        duration:
+          type: integer
+          example: 4
+        quantity:
+          type: integer
+          example: 2
+        discount:
+          type: number
+          format: float
+          example: 5
+
+    # --- Discount Schemas ---
+    Discount:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "62a3b4c5d6e7f8g9h0i1j2k3"
+        name:
+          type: string
+          example: "Early Bird"
+        value:
+          type: number
+          description: "Discount percentage (1-99)"
+          example: 15
+        description:
+          type: string
+          example: "Discount for booking 3 months in advance."
+        createdAt:
+          type: string
+          format: date-time
+    DiscountRequestBody:
+      type: object
+      required:
+        - name
+        - value
+        - description
+      properties:
+        name:
+          type: string
+          example: "Summer Sale"
+        value:
+          type: number
+          format: float
+          example: 20
+        description:
+          type: string
+          example: "Special discount for all summer tours."
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ClientId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+      description: The client ID
+    ItineraryId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+      description: The itinerary ID
+    TourId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+      description: The tour ID
+    DiscountId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+      description: The discount ID
+
+  responses:
+    UnauthorizedError:
+      description: "Unauthorized - Invalid or missing token"
+    Forbidden:
+      description: "Forbidden - User does not have necessary permissions"
+    NotFound:
+      description: "The specified resource was not found"
+    BadRequest:
+      description: "Bad Request - Invalid input data or validation error"
+    InternalServerError:
+      description: "Internal Server Error"
