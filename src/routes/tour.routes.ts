@@ -10,7 +10,7 @@ const router = Router();
 
 router.get("/", authenticateTokenMiddleware, getAllTours);
 
-router.post("/create", authenticateTokenMiddleware, createTour);
+router.post("/", authenticateTokenMiddleware, createTour);
 
 router.delete("/:id/delete", authenticateTokenMiddleware, deleteTour);
 

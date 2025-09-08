@@ -14,7 +14,7 @@ const router = Router();
 router.get("/", authenticateTokenMiddleware, getAllDiscounts);
 
 router.post(
-  "/create",
+  "/",
   authenticateTokenMiddleware,
   adminRoleMiddleware,
   discountValidator,

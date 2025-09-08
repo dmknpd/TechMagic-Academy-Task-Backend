@@ -19,12 +19,7 @@ router.get("/", authenticateTokenMiddleware, getAllClients);
 router.get("/search", authenticateTokenMiddleware, getClient);
 router.get("/:id/details", authenticateTokenMiddleware, getClientFullInfo);
 
-router.post(
-  "/create",
-  authenticateTokenMiddleware,
-  clientValidator,
-  createClient
-);
+router.post("/", authenticateTokenMiddleware, clientValidator, createClient);
 
 router.put(
   "/:id/edit",

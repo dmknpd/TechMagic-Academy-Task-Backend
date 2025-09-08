@@ -18,7 +18,7 @@ router.get("/", authenticateTokenMiddleware, getAllItineraries);
 router.get("/:id", authenticateTokenMiddleware, getItinerariesById);
 
 router.post(
-  "/create",
+  "/",
   authenticateTokenMiddleware,
   itineraryValidator,
   createItinerary
