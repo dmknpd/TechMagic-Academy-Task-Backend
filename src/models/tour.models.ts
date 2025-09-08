@@ -22,9 +22,24 @@ const TourSchema = new Schema<ITour>({
     required: true,
   },
   startDate: { type: Date, required: true },
-  duration: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  discount: { type: Number, default: 0 },
+  duration: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 4,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 100,
+  },
+  discount: {
+    type: Number,
+    default: 0,
+    min: 1,
+    max: 99,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

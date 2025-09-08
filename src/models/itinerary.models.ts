@@ -11,13 +11,48 @@ export interface IItinerary extends Document {
 }
 
 const ItinerarySchema = new Schema<IItinerary>({
-  country: { type: String, required: true },
-  climate: { type: String, required: true, lowercase: true },
-  hotel: { type: String, required: true },
-  duration: { type: [Number], default: [1, 2, 4] },
-  price: { type: Number, required: true },
-  url: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  country: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 56,
+    trim: true,
+  },
+  climate: {
+    type: String,
+    required: true,
+    lowercase: true,
+    minlength: 2,
+    maxlength: 50,
+    trim: true,
+  },
+  hotel: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 50,
+    trim: true,
+  },
+  duration: {
+    type: [Number],
+    default: [1, 2, 4],
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  url: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 255,
+    trim: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 export default model("Itinerary", ItinerarySchema);
